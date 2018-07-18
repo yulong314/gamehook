@@ -122,9 +122,21 @@ HMODULE patchAndLoadLibrary(const char * filename, const char * dll_name) {
 	tmp_dll_file.close();
 
 	// Load the temp library
-	HMODULE r = LoadLibrary(temp_filename);
-	if (!r)
-		LOG(WARN) << "LoadLibrary failed " << std::hex << GetLastError();
+	//HMODULE r = LoadLibrary(temp_filename);
+	//if (!r)
+	//	LOG(WARN) << "LoadLibrary failed " << std::hex << GetLastError();
+
+	WCHAR result[MAX_PATH] = {};
+	GetModuleFileNameW(static_cast<HMODULE>(nullptr), result, MAX_PATH);
+	HMODULE r = nullptr;
+	if (wcsstr(result, L"Launcher") == 0) {
+		// Load the temp library
+		r = LoadLibrary(temp_filename);
+		if (!r) {
+			LOG(WARN) << "LoadLibrary failed " << std::hex << GetLastError();
+		}
+	}
+
 	return r;
 }
 
