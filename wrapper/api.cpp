@@ -122,10 +122,6 @@ HMODULE patchAndLoadLibrary(const char * filename, const char * dll_name) {
 	tmp_dll_file.close();
 
 	// Load the temp library
-	//HMODULE r = LoadLibrary(temp_filename);
-	//if (!r)
-	//	LOG(WARN) << "LoadLibrary failed " << std::hex << GetLastError();
-
 	WCHAR result[MAX_PATH] = {};
 	GetModuleFileNameW(static_cast<HMODULE>(nullptr), result, MAX_PATH);
 	HMODULE r = nullptr;
@@ -136,7 +132,6 @@ HMODULE patchAndLoadLibrary(const char * filename, const char * dll_name) {
 			LOG(WARN) << "LoadLibrary failed " << std::hex << GetLastError();
 		}
 	}
-
 	return r;
 }
 
@@ -150,18 +145,23 @@ void loadAPI(const char * dll_name, bool load_hk, bool load_asi) {
 	WIN32_FIND_DATA data;
 	// We act as an ASI loader
 #ifndef NO_ASI_LOADER
-	if (load_asi) {
-		HANDLE hFind = FindFirstFile("*.asi", &data);
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do {
-				LOG(INFO) << "Loading asi " << data.cFileName;
-				HMODULE dll = LoadLibrary(data.cFileName);
-				if (dll)
-					asi_modules.push_back(dll);
-				else
-					LOG(WARN) << "Failed to load asi '" << data.cFileName << "'!";
-			} while (FindNextFile(hFind, &data));
-			FindClose(hFind);
+	WCHAR result[MAX_PATH] = {};
+	GetModuleFileNameW(static_cast<HMODULE>(nullptr), result, MAX_PATH);
+	HMODULE r = nullptr;
+	if (wcsstr(result, L"Launcher") == 0) {
+		if (load_asi) {
+			HANDLE hFind = FindFirstFile("*.asi", &data);
+			if (hFind != INVALID_HANDLE_VALUE) {
+				do {
+					LOG(INFO) << "Loading asi " << data.cFileName;
+					HMODULE dll = LoadLibrary(data.cFileName);
+					if (dll)
+						asi_modules.push_back(dll);
+					else
+						LOG(WARN) << "Failed to load asi '" << data.cFileName << "'!";
+				} while (FindNextFile(hFind, &data));
+				FindClose(hFind);
+			}
 		}
 	}
 #endif
